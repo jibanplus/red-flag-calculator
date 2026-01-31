@@ -1,6 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 
 app = Flask(__name__)
+
+# Serve thumbnail
+@app.route("/thumbnail.png")
+def thumbnail():
+    return send_from_directory(".", "thumbnail.png")
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -30,7 +35,17 @@ def home():
     <html>
     <head>
         <title>Red Flag Calculator</title>
+
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="AI Red Flag Calculator" />
+        <meta property="og:description" content="Check relationship red flags using a simple AI-style calculator." />
+        <meta property="og:image" content="https://red-flag-calculator.onrender.com/thumbnail.png" />
+        <meta property="og:url" content="https://red-flag-calculator.onrender.com" />
+        <meta property="og:type" content="website" />
+
+        <meta name="twitter:card" content="summary_large_image">
     </head>
+
     <body style="background:#0f0f0f;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;height:100vh;">
         <div style="background:#1c1c1c;padding:25px;border-radius:10px;width:380px;">
             <h2>Red Flag Calculator</h2>
