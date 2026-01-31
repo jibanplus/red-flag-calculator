@@ -1,80 +1,223 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request
+import random
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
-# Serve thumbnail
-@app.route("/thumbnail.png")
-def thumbnail():
-    return send_from_directory(".", "thumbnail.png")
+# -------------------------------
+# Funny Hinglish taglines
+# -------------------------------
+LOW_LINES = [
+    "Green flag zone… nazar na lage 😌",
+    "Lagta hai yaha communication Wi-Fi strong hai 📶",
+    "Red flag kam, green vibes zyada 😄",
+    "Normal issues hain, panic nahi 👍"
+]
 
+MID_LINES = [
+    "Yellow light blink kar raha hai 🤔",
+    "Thoda sa ‘hmm’ moment hai 😅",
+    "Abhi fix ho sakta hai, ignore mat karo 🛠️",
+    "Chhoti chingari hai, aag mat banne dena 🔥"
+]
+
+HIGH_LINES = [
+    "Red flag aaya… entry bhi le li 😬",
+    "Yeh sirf mood swing nahi lag raha 🚨",
+    "Pattern dikh raha hai, single incident nahi 👀",
+    "Future-you thoda alert ho jao ⚠️"
+]
+
+# -------------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
-    result = ""
+    total_score = None
+    level = ""
+    emoji = ""
+    tagline = ""
+    sound_level = ""
+    comm = respect = honesty = control = 0
 
     if request.method == "POST":
-        score = 0
         f = request.form
 
-        if f.get("lying") == "yes":
-            score += 2
-        if f.get("anger") == "yes":
-            score += 2
-        if f.get("control") == "yes":
-            score += 2
-        if f.get("respect") == "no":
-            score += 2
+        # category scores (0–25 each)
+        comm = int(f.get("comm", 0))
+        respect = int(f.get("respect", 0))
+        honesty = int(f.get("honesty", 0))
+        control = int(f.get("control", 0))
 
-        if score >= 6:
-            result = "🚨 High Red Flag Risk"
-        elif score >= 3:
-            result = "⚠️ Medium Red Flag Risk"
+        total_score = comm + respect + honesty + control
+
+        if total_score <= 30:
+            level = "low"
+            emoji = "😌"
+            tagline = random.choice(LOW_LINES)
+            sound_level = "low"
+        elif total_score <= 60:
+            level = "mid"
+            emoji = "🤔"
+            tagline = random.choice(MID_LINES)
+            sound_level = "mid"
         else:
-            result = "✅ Low Red Flag Risk"
+            level = "high"
+            emoji = "😬"
+            tagline = random.choice(HIGH_LINES)
+            sound_level = "high"
 
     return f"""
-    <html>
-    <head>
-        <title>Red Flag Calculator</title>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Red Flag Signals</title>
 
-        <!-- Open Graph Meta Tags -->
-        <meta property="og:title" content="AI Red Flag Calculator" />
-        <meta property="og:description" content="Check relationship red flags using a simple AI-style calculator." />
-        <meta property="og:image" content="https://red-flag-calculator.onrender.com/thumbnail.png" />
-        <meta property="og:url" content="https://red-flag-calculator.onrender.com" />
-        <meta property="og:type" content="website" />
+<style>
+body {{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(120deg, #cfd9ff, #fbc2eb);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}}
 
-        <meta name="twitter:card" content="summary_large_image">
-    </head>
+.card {{
+    background:white;
+    width:420px;
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.15);
+}}
 
-    <body style="background:#0f0f0f;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;height:100vh;">
-        <div style="background:#1c1c1c;padding:25px;border-radius:10px;width:380px;">
-            <h2>Red Flag Calculator</h2>
+h2 {{
+    text-align:center;
+    margin-bottom:10px;
+}}
 
-            <form method="POST">
-                <p>Frequent lying?</p>
-                <input type="radio" name="lying" value="yes" required> Yes
-                <input type="radio" name="lying" value="no"> No
+label {{
+    font-size:14px;
+}}
 
-                <p>Anger issues?</p>
-                <input type="radio" name="anger" value="yes" required> Yes
-                <input type="radio" name="anger" value="no"> No
+input[type=range] {{
+    width:100%;
+}}
 
-                <p>Controlling behavior?</p>
-                <input type="radio" name="control" value="yes" required> Yes
-                <input type="radio" name="control" value="no"> No
+button {{
+    width:100%;
+    padding:12px;
+    margin-top:15px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    background:#6c63ff;
+    color:white;
+}}
 
-                <p>Respects boundaries?</p>
-                <input type="radio" name="respect" value="yes" required> Yes
-                <input type="radio" name="respect" value="no"> No
+.result {{
+    margin-top:20px;
+    text-align:center;
+}}
 
-                <br><br>
-                <button type="submit">Calculate</button>
-            </form>
+.bar {{
+    height:12px;
+    border-radius:10px;
+    background:#eee;
+    overflow:hidden;
+    margin-top:8px;
+}}
 
-            <h3>{result}</h3>
+.fill {{
+    height:100%;
+}}
 
-            <p style="font-size:12px;opacity:0.7;">Powered by Jiban</p>
-        </div>
-    </body>
-    </html>
-    """
+.low {{ background:#4caf50; }}
+.mid {{ background:#ffc107; }}
+.high {{ background:#f44336; }}
+
+.emoji {{
+    font-size:38px;
+    animation: pop 0.6s ease;
+}}
+
+@keyframes pop {{
+    0% {{ transform:scale(0.5); }}
+    60% {{ transform:scale(1.2); }}
+    100% {{ transform:scale(1); }}
+}}
+
+.footer {{
+    margin-top:15px;
+    font-size:12px;
+    opacity:0.7;
+    text-align:center;
+}}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Red Flag Signals 🚦</h2>
+
+<form method="POST">
+<label>🧠 Communication</label>
+<input type="range" name="comm" min="0" max="25" value="0">
+
+<label>❤️ Respect</label>
+<input type="range" name="respect" min="0" max="25" value="0">
+
+<label>🎭 Honesty</label>
+<input type="range" name="honesty" min="0" max="25" value="0">
+
+<label>🔒 Control</label>
+<input type="range" name="control" min="0" max="25" value="0">
+
+<label style="font-size:13px;">
+<input type="checkbox" id="mute"> Mute sound
+</label>
+
+<button type="submit">Check Signals</button>
+</form>
+
+{"".join([
+f'''
+<div class="result">
+<div class="emoji">{emoji}</div>
+<h3>Your Signal Score: {total_score} / 100</h3>
+
+<div class="bar">
+  <div class="fill {level}" style="width:{total_score}%"></div>
+</div>
+
+<p><b>{tagline}</b></p>
+
+<p style="font-size:13px;opacity:0.7;">
+This tool shows patterns, not labels.
+</p>
+</div>
+
+<audio id="sound-low" src="/static/low.mp3"></audio>
+<audio id="sound-mid" src="/static/mid.mp3"></audio>
+<audio id="sound-high" src="/static/high.mp3"></audio>
+
+<script>
+if(!document.getElementById("mute").checked){{
+ document.getElementById("sound-{sound_level}").play();
+}}
+</script>
+'''
+]) if total_score is not None else ""}
+
+<div class="footer">
+POWERED BY <b>TUB</b>
+</div>
+
+</div>
+
+</body>
+</html>
+"""
+
+if __name__ == "__main__":
+    app.run()
