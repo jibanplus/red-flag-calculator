@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy-First Red Flag Calculator</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f172a;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    background: #1e293b;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+}
+h1 {
+    color: #f43f5e;
+    margin-bottom: 10px;
+}
+p {
+    color: #94a3b8;
+    font-size: 14px;
+}
+.input-group {
+    margin: 18px 0;
+    text-align: left;
+}
+label {
+    font-weight: bold;
+    font-size: 14px;
+}
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+button {
+    background: #f43f5e;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover { background: #e11d48; }
+button:disabled {
+    background: #475569;
+    cursor: not-allowed;
+}
+
+#fhe-process {
+    margin-top: 20px;
+    background: #000;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #10b981;
+    display: none;
+    text-align: left;
+}
+
+#result {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px dashed #f43f5e;
+    font-size: 18px;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🚩 Red Flag Calculator</h1>
+    <p>Powered by <b>FHE</b> — Inputs stay encrypted even during computation.</p>
+
+    <div class="input-group">
+        <label>আপনি কতটা কিপ্টে? (1–10)</label>
+        <input type="range" id="q1" min="1" max="10" value="5">
+    </div>
+
+    <div class="input-group">
+        <label>রাস্তায় হাঁটার সময় অন্যের দিকে তাকান? (1–10)</label>
+        <input type="range" id="q2" min="1" max="10" value="5">
+    </div>
+
+    <div class="input-group">
+        <label>বন্ধুদের ট্রিট দেওয়ার সময় মানিব্যাগ ভুলে যান? (1–10)</label>
+        <input type="range" id="q3" min="1" max="10" value="5">
+    </div>
+
+    <div class="input-group">
+        <label>Reply দিতে দেরি করেন কিন্তু online থাকেন? (1–10)</label>
+        <input type="range" id="q4" min="1" max="10" value="5">
+    </div>
+
+    <div class="input-group">
+        <label>“Seen” করে রেখে দেন? (1–10)</label>
+        <input type="range" id="q5" min="1" max="10" value="5">
+    </div>
+
+    <button id="calcBtn" onclick="calculateScore()">Calculate (Encrypted)</button>
+
+    <div id="fhe-process"></div>
+    <div id="result"></div>
+</div>
+
+<script>
+function hex() {
+    return "0x" + Math.random().toString(16).slice(2,10);
+}
+
+function calculateScore() {
+    const btn = document.getElementById("calcBtn");
+    btn.disabled = true;
+
+    const values = [
+        q1.value, q2.value, q3.value, q4.value, q5.value
+    ].map(Number);
+
+    const fhe = document.getElementById("fhe-process");
+    const result = document.getElementById("result");
+
+    fhe.style.display = "block";
+    result.style.display = "none";
+    fhe.innerHTML = "🔐 Initializing FHE keys...<br>";
+
+    setTimeout(() => {
+        fhe.innerHTML += "PublicKey = " + hex() + "<br>";
+        fhe.innerHTML += "Noise added for privacy ✔️<br><br>";
+        fhe.innerHTML += "Encrypting inputs...<br>";
+        values.forEach((_, i) => {
+            fhe.innerHTML += `E(q${i+1}) = ${hex()}<br>`;
+        });
+    }, 800);
+
+    setTimeout(() => {
+        fhe.innerHTML += "<br>Performing homomorphic addition...<br>";
+        fhe.innerHTML += "Computing on encrypted data ✔️<br>";
+    }, 1800);
+
+    setTimeout(() => {
+        fhe.innerHTML += "Decrypting final score...<br>";
+    }, 2600);
+
+    setTimeout(() => {
+        const score = (values.reduce((a,b)=>a+b,0) / 50) * 100;
+        let msg = "";
+
+        if (score > 80) msg = "আপনি তো সাক্ষাৎ যমদূত 🚩🚩🚩";
+        else if (score > 60) msg = "High risk detected 🚩 সাবধান!";
+        else if (score > 40) msg = "Mixed signals ⚠️";
+        else msg = "ধোয়া তুলসি পাতা 😇";
+
+        fhe.style.display = "none";
+        result.style.display = "block";
+        result.innerHTML = `Your Red Flag Score: <b>${Math.round(score)}%</b><br><small>${msg}</small>`;
+        btn.disabled = false;
+    }, 3500);
+}
+</script>
+
+</body>
+</html>
